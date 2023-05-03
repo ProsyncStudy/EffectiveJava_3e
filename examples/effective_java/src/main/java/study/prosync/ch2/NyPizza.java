@@ -1,5 +1,7 @@
 package study.prosync.ch2;
 
+import java.lang.ref.Cleaner;
+
 import lombok.ToString;
 
 @ToString

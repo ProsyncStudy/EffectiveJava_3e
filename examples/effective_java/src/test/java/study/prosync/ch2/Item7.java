@@ -13,7 +13,7 @@ public class Item7 {
   @Test
   public void stacktest1() {
     Stack s = new Stack();
-    long a = TimeCheck.getTime();
+    TimeCheck.START();
     for (int i = 0; i < 20480; i++) {
       s.push(new String("" + i));
     }
@@ -25,8 +25,7 @@ public class Item7 {
       }
     }
 
-    long b = TimeCheck.getTime();
-    log.info(b-a);
+    TimeCheck.END();
   }
 
   @Test

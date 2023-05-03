@@ -1,3 +1,29 @@
+- [Ch 2. 객체의 생성과 소멸](#ch-2-객체의-생성과-소멸)
+- [Item 1. 생성자 대신 정적 팩터리 메서드를 고려하라](#item-1-생성자-대신-정적-팩터리-메서드를-고려하라)
+  - [1-1. 생성자와 다르게 정적 팩토리 메소드는 이름을 가질 수 있다.](#1-1-생성자와-다르게-정적-팩토리-메소드는-이름을-가질-수-있다)
+  - [1-2. 생성자와 다르게 메소드가 호출될 때마다 객체를 생성하지 않아도 된다.](#1-2-생성자와-다르게-메소드가-호출될-때마다-객체를-생성하지-않아도-된다)
+    - [참고: 플라이웨이트 패턴](#참고-플라이웨이트-패턴)
+  - [1-3. 생성자와 다르게, 반환타입에 객체의 하위타입들을 리턴할 수 있다.](#1-3-생성자와-다르게-반환타입에-객체의-하위타입들을-리턴할-수-있다)
+  - [1-4. 파라미터에따라 다른 객체를 리턴시킬 수도 있다.](#1-4-파라미터에따라-다른-객체를-리턴시킬-수도-있다)
+  - [1-5. 정적 팩토리 메소드를 통해 리턴받는 객체의 타입(클래스)은 반드시 존재할 필요가 없다.](#1-5-정적-팩토리-메소드를-통해-리턴받는-객체의-타입클래스은-반드시-존재할-필요가-없다)
+  - [그렇다면 단점은 없나?](#그렇다면-단점은-없나)
+- [Item 2. 생성자에 매개변수가 많다면 빌더를 고려하라](#item-2-생성자에-매개변수가-많다면-빌더를-고려하라)
+- [Item 3. private 생성자나 열거 타입으로 싱글턴임을 보증하라](#item-3-private-생성자나-열거-타입으로-싱글턴임을-보증하라)
+- [Item 4. 인스턴스화를 막으려거든 private 생성자를 사용하라](#item-4-인스턴스화를-막으려거든-private-생성자를-사용하라)
+- [Item 5. 자원을 직접 명시하지 말고 의존 객체 주입을 사용하라](#item-5-자원을-직접-명시하지-말고-의존-객체-주입을-사용하라)
+- [Item 6. 불필요한 객체 생성을 피하라](#item-6-불필요한-객체-생성을-피하라)
+- [Item 7. 다 쓴 객체 참조를 해제하라](#item-7-다-쓴-객체-참조를-해제하라)
+- [Item 8. finalizer와 cleaner 사용을 피하라](#item-8-finalizer와-cleaner-사용을-피하라)
+  - [promptness 문제 (신속성?)](#promptness-문제-신속성)
+  - [자원 해제 문제](#자원-해제-문제)
+  - [실행 속도 문제](#실행-속도-문제)
+  - [보안 이슈](#보안-이슈)
+  - [AutoCloseable](#autocloseable)
+  - [cleaner/finalizer가 사용이되는 경우?](#cleanerfinalizer가-사용이되는-경우)
+  - [cleaner 예](#cleaner-예)
+- [Item 9. try-finally보다는 try-with-resources를 사용하라](#item-9-try-finally보다는-try-with-resources를-사용하라)
+
+
 # Ch 2. 객체의 생성과 소멸
 # Item 1. 생성자 대신 정적 팩터리 메서드를 고려하라
 클래스 내에 정적 인스턴스를 정의해서 해당 값을 리턴하는 메소드를 구현하면 좋다.
@@ -587,7 +613,7 @@ C++의 생성/소멸자는 서로 대응되며, 객체 파괴가 필요할 땐 �
 하지만 java의 finalize는 대응되지 않고, 명시적으로 finalize를 추가하여도 GC가 수거할 때 까지 기다려야 한다.
 C++에서 소멸자는 또한 명시적으로 nonmemory 영역에 대한 리소스도 반환받아오는데, try-with-resources나 try-finally 블락들이 그 역할을 한다.
 
-## promptness 문제
+## promptness 문제 (신속성?)
 계속해서 단점들을 나열해보면 finalizer와 cleaner는 우선 빨리 끝난다는 보장이 없다. 실제 참조가 끝났다 하더라도 메모리 자원이 반환되는 데 까지 꽤 긴 시간이 걸릴 수도 있다. 따라서 개발을 할 때 시간이 많이걸릴 것 같은 작업은 finalizer나 cleaner에 넣어선 안된다.
 
 예를 들어, file close를 finalizer에게 맡기는건 위험하다. 왜냐면 실제로 언제 자원을 반환하고 close할 지 모르는데, fd 자체는 보통 프로그램에 제한이 걸려있기 때문이다. (보통 1024개) 이런 경우에 자원 반환이 늦어지면 fd가 꽉차서 더이상 파일을 열 수 없게된다.
@@ -611,7 +637,74 @@ gc를 호출하는 함수들에도 유혹되어선 안된다. System.gc()나 Sys
 ## 실행 속도 문제
 그리고 finalizer나 cleaner 없이 try with resources를 사용하면 훨씬 빠르게 작업이 진행된다. 같은 GC를 호출하는데에도 차이가 나는 이유는 finalizer같은 경우, GC의 효율적인 동작 자체를 억제한다. 따라서 훨씬 느리다.
 
+## 보안 이슈
+finalizer 어택이라는게 있다. 생성자나 직렬화 과정에서 throw가 발생하면, 하위 클래스의 finalizer가 비정상적으로 호출될 수 있다.
+즉, 나는 생성하다가 exception을 맞은 것인데 비정상동작을 하게된다. 이 과정에서 static 영역에 되다만 객체에 대한 참조값이 들어가 수 있고,
+이는 GC가 수거해 가는 것을 방해한다.
 
+따라서 이딴거 쓰지말고 throw나 적절히 날려주면 그만이다. finalize는 제어하기가 너무 어렵다.
+만약 반드시 쓰고싶다면 finalizer에 final 태그를 붙여서 하위 클래스에서 사용할 수 없도록 하라.
+
+## AutoCloseable
+try with resources 테크닉이랑 같이쓰이는 녀석이다. 바로 다음 장에 나온다.
+AutoCloseable을 implements한 객체에 대해 close를 구현하면, try 블록을 탈출 시 자동으로 close가 불린다.
+close에서는 대게 해당 객체가 더이상 유효하지 않음을 기록한다. (null로 변경하거나 JDBC의 경우 Connection close 등을 통해 자원을 반환)
+
+객체가 유효하지 않음을 필드에 기록하고, 다른 메소드에서 이를 체크하면 좋다. 만약 이미 유효하지 않음이 체크가 되었다면 IlligalStateException 을
+내보내면 된다.
+
+## cleaner/finalizer가 사용이되는 경우?
+크게 두 가지가 있다.
+1. 사용자가 close를 사용하지 않을 경우. (못할 경우?)
+이런 경우엔 소멸자(cleaner, finalize)를 정의해주는게 좋다.
+강제로 만들 지 않는 이상 이런 케이스가 있는 진 모르겠다.
+
+2. native peer를 사용할 경우
+자바 객체가 네이티브 메서드를 통해 기능을 위임시킨 객체를 말한다.
+이런 객체는 GC가 관리하는 자바객체가 아니어서 존재를 알지 못한다. 따라서 이럴 땐 cleaner로 제거해주어야 한다.
+
+## cleaner 예
+```java
+// An autocloseable class using a cleaner as a safety net
+public class Room implements AutoCloseable {
+    private static final Cleaner cleaner = Cleaner.create();
+
+    // Resource that requires cleaning. Must not refer to Room!
+    private static class State implements Runnable {
+        int numJunkPiles; // Number of junk piles in this room
+
+        State(int numJunkPiles) {
+            this.numJunkPiles = numJunkPiles;
+        }
+
+        // Invoked by close method or cleaner
+        @Override public void run() {
+        System.out.println("Cleaning room");
+        numJunkPiles = 0;
+        }
+    }
+
+    // The state of this room, shared with our cleanable
+    private final State state;
+
+    // Our cleanable. Cleans the room when it’s eligible for gc
+    private final Cleaner.Cleanable cleanable;
+
+    public Room(int numJunkPiles) {
+        state = new State(numJunkPiles);
+        cleanable = cleaner.register(this, state);
+    }
+
+    @Override public void close() {
+        cleanable.clean();
+    }
+}
+```
+close를 명시적으로 호출하거나 try with resource를 통해 네이티브 피어에 해당하는 State를 제거할 수 있다.
+Room은 State의 주소에 해당하는 Long값을 불변값으로 들고있을 것이고, 이는 GC가 알 수 없기 때문에 우리가 제거해야만 한다.
+
+네이티브 피어 State가 Room에 해당하는 정보를 가지고 있지 않음을 유의하자. 만약 그랬다면 circular한 참조가 생겨 GC가 제거할 수 없었을 것이다.
+따라서 State는 **static nested** 여야만 한다. 왜냐면 nonstatic한 녀석들은 그들 인스턴스에 대한 참조값을 포함하고 있기 때문이다.
 
 # Item 9. try-finally보다는 try-with-resources를 사용하라
 
@@ -656,14 +749,6 @@ br.close()에서도 똑같이 throw가 발생할 것이다. 그런데 이에 대
 try-with-resources을 사용하면 이에 대해 손쉽게 처리가 가능하다.
 각각 첫 / 두 번째 예제에 대해서 변경한 코드이다.
 ```java
-// try-with-resources - the the best way to close resources!
-static String firstLineOfFile(String path) throws IOException {
-  try (BufferedReader br = new BufferedReader(
-                                new FileReader(path))) {
-    return br.readLine();
-  }
-}
-
 // try-with-resources on multiple resources - short and sweet
 static void copy(String src, String dst) throws IOException {
   try (InputStream in = new FileInputStream(src);
@@ -677,12 +762,23 @@ static void copy(String src, String dst) throws IOException {
 ```
 
 ```java
+// try-with-resources - the the best way to close resources!
+static String firstLineOfFile(String path) throws IOException {
+  try (BufferedReader br = new BufferedReader(
+                                new FileReader(path))) {
+    return br.readLine();
+  }
+}
+```
+
+위의 firstLineOfFile를 변형해 try - catch 또는 try - finally도 가능하다. 물론 close가 호출됨은 알아서 보장이 된다.
+```java
 // try-with-resources with a catch clause
 static String firstLineOfFile(String path, String defaultVal) {
-  try (BufferedReader br = new BufferedReader(
-    new FileReader(path))) {
-  return br.readLine();
-    } catch (IOException e) {
-  return defaultVal;}
+  try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+    return br.readLine();
+  } catch (IOException e) {
+    return defaultVal;
+  }
 }
 ```
