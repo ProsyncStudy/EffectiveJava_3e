@@ -30,8 +30,9 @@ public class Item8 {
     @Test
     public void cleanerTest2() {
         Room myRoom = new Room(99);
-        myRoom = null; // ?
+        // myRoom = null; // ?
         log.info("PeaceOut");
-        // myRoom.close();
+
+        myRoom.close();
     }
 }

@@ -13,7 +13,7 @@ public class Item6 {
   @Test
   public void StringTest1() {
     TimeCheck.START();
-    for (int i = 0; i < 10000000; i++) {
+    for (int i = 0; i < 100000000; i++) {
       String s = new String("bikini");
       s += "asdfasdfasdf";
       // log.info(s);
@@ -24,7 +24,7 @@ public class Item6 {
   @Test
   public void StringTest2() {
     TimeCheck.START();
-    for (int i = 0; i < 10000000; i++) {
+    for (int i = 0; i < 100000000; i++) {
       String s = "bikini";
       s += "asdfasdfasdf";
       // log.info(s.hashCode());
