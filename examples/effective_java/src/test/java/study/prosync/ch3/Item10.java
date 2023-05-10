@@ -17,8 +17,8 @@ public class Item10 {
         // when
 
         // then
-        assertFalse(s.equals(cis));
-        assertTrue(cis.equals(s));
+        assertNotEquals(s, cis);
+        assertEquals(cis, s);
     }
 
     @Test
@@ -30,8 +30,8 @@ public class Item10 {
         // when
 
         // then
-        assertFalse(s.equals(cis));
-        assertFalse(cis.equals(s));
+        assertNotEquals(s, cis);
+        assertNotEquals(cis, s);
     }
 
     @Test
@@ -43,8 +43,8 @@ public class Item10 {
         // when
 
         // then
-        assertTrue(p.equals(cp));
-        assertFalse(cp.equals(p));
+        assertEquals(p, cp);
+        assertNotEquals(cp, p);
     }
 
     @Test
@@ -57,9 +57,9 @@ public class Item10 {
         // when
 
         // then
-        assertTrue(cp.equals(p));
-        assertTrue(p.equals(cp2));
-        assertFalse(cp.equals(cp2)); // cp는 cp2와 같아야 함
+        assertEquals(cp, p);
+        assertEquals(p, cp2);
+        assertNotEquals(cp, cp2); // cp는 cp2와 같아야 함
     }
 
     @Test
@@ -71,7 +71,7 @@ public class Item10 {
         // when
 
         // then
-        assertTrue(cp.equals(cp2)); // 무한재귀
+        assertEquals(cp, cp2); // 무한재귀
     }
 
     @Test
@@ -85,9 +85,9 @@ public class Item10 {
         // when
 
         // then
-        assertFalse(cp.equals(p));
-        assertFalse(p.equals(cp2));
-        assertFalse(cp2.equals(cp));
+        assertNotEquals(cp, p);
+        assertNotEquals(p, cp2);
+        assertNotEquals(cp2, cp);
     }
 
     @Test
@@ -116,7 +116,7 @@ public class Item10 {
         // when
 
         // then
-        assertFalse(url1.equals(url2));
+        assertNotEquals(url1, url2);
         assertNotEquals(url1.hashCode(), url2.hashCode());
     }
 
@@ -134,19 +134,19 @@ public class Item10 {
                 .x(1)
                 .y(2)
                 .build();
-        assertTrue(x1_y2.equals(autoValue));
+        assertEquals(x1_y2, autoValue);
 
         PointAutoValue x2_y2 = PointAutoValue.builder()
                 .x(2)
                 .y(2)
                 .build();
-        assertFalse(x2_y2.equals(autoValue));
+        assertNotEquals(x2_y2, autoValue);
 
         PointAutoValue x1_y4 = PointAutoValue.builder()
                 .x(1)
                 .y(4)
                 .build();
-        assertFalse(x1_y4.equals(autoValue));
+        assertNotEquals(x1_y4, autoValue);
         assertEquals("PointAutoValue{x=1, y=2}", autoValue.toString());
     }
 
