@@ -64,7 +64,7 @@ c.add(new Coin());
 
 모든 타입을 받고싶으면, 로 타입이 아닌 `<Object>`를 사용하는게 좋다.
 - 로 타입은 제네릭을 사용 안하겠다는 의미인 반면에, `<Object>`는 컴파일러에 명시적으로 모든 객체를 허용한다는 의미다.
-  ``` java
+``` java
 // Fails at runtime - unsafeAdd method uses a raw type (List)!
 public static void main(String[] args) {
 List<String> strings = new ArrayList<>();
@@ -81,7 +81,7 @@ list.add(o);
 
 파라미터로 어떤 타입이든 받고 싶고, 그 타입을 신경쓰고 싶지 않은 것이면 비한정적 와일드카드 <?>를 사용하는게 좋다.
 - 로 타입과 달리, 컬렉션의 불변식이 보장된다.
-  ``` java 
+``` java 
 /////////////////////////////////////////////////////////////////// 예시 손볼 것
 static void unsafeAdd(List<?> l1, List<?> l2){
   // 코드 블록에 들어온 순간 타입이 정해진다. Set<String>이 들어왔다면 s1과 s2에는 String만 담을 수 있다.
@@ -97,7 +97,7 @@ static void unsafeAdd(List l1, List l2){
 
 로 타입을 사용해야 하는 경우는 다음과 같다
 - class 리터럴 사용할 때
-  ``` java
+``` java
 // legal
 List.class
 String[].class
@@ -108,7 +108,7 @@ List<String>.class
 List<Integer>.class
   ```
 - instanceof 사용할 때
-  ``` java
+``` java
 // Legitimate use of raw type - instanceof operator
 if (o instanceof Set) { // Raw type
 Set<?> s = (Set<?>) o; // Wildcard type
@@ -117,3 +117,58 @@ Set<?> s = (Set<?>) o; // Wildcard type
   ```
 > 런타임에는 제네릭 타입 정보가 지워지므로, <?> 제외하고는 instanceof 사용 불가능.\
 > 같은 동작이므로 더 깔끔하게 표현 가능한 로 타입 사용
+
+## Item 27. 비검사 경고를 제거하라
+
+> 아주 당연하다
+
+제네릭을 사용한다면, 아래의 컴파일러 warning을 제거할 수 있다.
+- 비 검사 형 변환
+- 비 검사 메서드 호출
+- 비 검사 파라미터화된 가변 인수 타입
+- 비 검사 변환
+``` java
+// Wrong, Compiler Error
+Set<Lark> exaltation = new HashSet();
+
+// Good
+Set<Lark> exaltation = new HashSet<>();
+  ```
+
+자신 있으면 @SuppressWarnings("unchecked") 붙여서 warning 제거해도 된다.
+하지만, 중요한 문제를 넘길 수 있으므로 전체 클래스같은데는 적용하면 안되고, 한 줄이 넘는 메서드나 생성자에 달린 @SuppressWarnings 어노테이션 발견하면 지역 변수 선언 쪽으로 옮기는게 좋다.
+
+``` java
+public <T> T[] toArray(T[] a) {
+if (a.length < size)
+return (T[]) Arrays.copyOf(elements, size, a.getClass());
+System.arraycopy(elements, 0, a, 0, size);
+if (a.length > size)
+a[size] = null;
+return a;
+}
+```
+
+위 코드는 비 검사 형 변환의 한 예시이며, return은 선언이 아니여서 바로 위에  @SuppressWarnings 어노테이션을 붙일 수 없으므로(JLS, Java Language Specification) 메소드에 붙여야 한다 생각할 수 있지만
+다음처럼 변경하면 그럴 필요가 없다.
+
+``` java
+// Adding local variable to reduce scope of @SuppressWarnings
+public <T> T[] toArray(T[] a) {
+if (a.length < size) {
+// This cast is correct because the array we're creating
+// is of the same type as the one passed in, which is T[].
+@SuppressWarnings("unchecked") T[] result =
+(T[]) Arrays.copyOf(elements, size, a.getClass());
+return result;
+}
+System.arraycopy(elements, 0, a, 0, size);
+if (a.length > size)
+a[size] = null;
+return a;
+}
+```
+이처럼 최대한 작은 범위로 어노테이션을 붙이는게 좋다.
+
+> @SuppressWarnings 사용하면 주석으로 왜 안전한지 적어놓는게 다른 사람에게 좋다.\
+> 그냥 쓰지 말자
