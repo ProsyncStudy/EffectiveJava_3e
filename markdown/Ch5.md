@@ -172,3 +172,81 @@ return a;
 
 > @SuppressWarnings 사용하면 주석으로 왜 안전한지 적어놓는게 다른 사람에게 좋다.\
 > 그냥 쓰지 말자
+
+## Item 28. 배열보다는 리스트를 사용하라
+
+뭐가 다른가?
+1. 배열은 공변, 제네릭은 불공변이다
+  - 어떤 타입 S가 T의 하위 타입이라면, S를 T로 대체할 수 있는가의 문제로 공변의 경우 O, 불공변의 경우 X 이다.
+
+``` java
+// Fails at runtime!
+Object[] objectArray = new Long[1];
+objectArray[0] = "I don't fit in"; // Throws ArrayStoreException
+
+// Won't compile!
+List<Object> ol = new ArrayList<Long>(); // Incompatible types
+ol.add("I don't fit in");
+```
+> 이번 챕터가 항상 강조하듯이, 컴파일 시 오류를 발견하는게 좋다.
+
+2. 배열은 런타임 중 자신이 담을 원소의 타입을 알고있고(reified), 제네릭은 런타임에 타입 정보가 소거된다.
+  - 그러므로, 배열과 제네릭은 함께 못쓴다. 컴파일러가 자동 생성한 형변환 코드가 문제를 일으키기 때문
+    - `new List<E>[]`, `new List<String>[]`, `new E[]`는 컴파일부터 안됨
+``` java
+// Why generic array creation is illegal - won't compile!
+List<String>[] stringLists = new List<String>[1]; // (1)
+List<Integer> intList = List.of(42); // (2)
+Object[] objects = stringLists; // (3)
+objects[0] = intList; // (4)
+String s = stringLists[0].get(0); // (5)
+```
+> 정 쓰려면 비 한정적 와일드 카드 타입을 사용한 `List<?>`, `Map<?,?>`이 있긴 하다.
+
+이런 차이 때문에, 제네릭 컬렉션은 일반적으로 자신의 원소 타입을 담은 배열을 반환하지 못한다.
+또한, 가변 인수 메서드와 같이 사용하면 해석이 힘든 warning이 발생한다.
+- 이떄, @SafeVarargs를 사용해서 warning을 제거할 수 있긴 하다.
+
+이때, `E[]` 말고 `List<E>`를 쓰는게 된다.
+좀 더 복잡해지고, 성능에 손해가 있을 수 있지만, 안전성과 상호 운용성이 좋기 떄문
+
+``` java
+// Chooser - a class badly in need of generics!
+public class Chooser {
+private final Object[] choiceArray;
+public Chooser(Collection choices) {
+choiceArray = choices.toArray();
+}
+public Object choose() {
+Random rnd = ThreadLocalRandom.current();
+return choiceArray[rnd.nextInt(choiceArray.length)];
+}
+}
+```
+위 코드는 매번 형 변환이 필요하고, 런 타임 중 ClassCastException이 발생할 수 있다.
+``` java
+// A first cut at making Chooser generic - won't compile
+public class Chooser<T> {
+private final T[] choiceArray;
+public Chooser(Collection<T> choices) {
+choiceArray =  (T[]) choices.toArray(); // <- is this safe?
+}
+// choose method unchanged
+}
+```
+좀 낫지만, 작성한 사람이 주석으로 이게 안전한 이유를 설명해야 하므로 안하는게 낫다.
+
+``` java
+// List-based Chooser - typesafe
+public class Chooser<T> {
+private final List<T> choiceList;
+public Chooser(Collection<T> choices) {
+choiceList = new ArrayList<>(choices);
+}
+public T choose() {
+Random rnd = ThreadLocalRandom.current();
+return choiceList.get(rnd.nextInt(choiceList.size()));
+}
+}
+```
+좀 장황하고 성능이 떨어지지만, ClassCastException를 발생시키지 않으므로, 안전하다
