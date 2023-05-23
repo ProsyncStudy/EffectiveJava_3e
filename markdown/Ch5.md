@@ -89,6 +89,7 @@ public static void main(String[] args) {
 
   static void unsafeAdd(List<?> l1, List<?> l2){
     // 코드 블록에 들어온 순간 타입이 정해진다. List<String>이 들어왔다면 s1과 s2에는 String만 담을 수 있다.
+    // 와일드 카드 Collection<?>은 null 외에는 어떠한 원소도 넣을 수 없다.
     // compile error
     l1.add(l2.get(0));
   }
@@ -122,11 +123,92 @@ Set<?> s = (Set<?>) o; // Wildcard type
 
 > 아주 당연하다
 
+### 비 검사(unckecked)는
+  - 자바 컴파일러가 타입 안전을 보장하기 위한 타입 정보가 부족하다는 의미
+  - 기본적으로 비활성화 되어 있으며, 컴파일러에 `-Xlint:uncheck` 추가해야 한다.
+
 ### 제네릭을 사용한다면, 아래의 컴파일러 warning을 제거할 수 있다.
 - 비 검사 형 변환
+``` java
+@Test
+void uncheckedCast() {
+    Map<String, String> map = (Map<String, String>) getMap();
+}
+
+private Map getMap() {
+    return new HashMap<String, String>();
+}
+
+/*
+warning: [unchecked] unchecked cast
+        Map<String, String> map = (Map<String, String>) getMap();
+                                                               ^
+  required: Map<String,String>
+  found:    Map
+*/
+```
 - 비 검사 메서드 호출
+  - 타입이 안맞는 메서드 호출에 발생한다.
+``` java
+@Test
+void uncheckedCall() {
+    Set words = new HashSet();
+    words.add("hello");
+    words.add(1);
+
+    assertThat(words.contains("hello")).isEqualTo(true);
+    assertThat(words.contains(1)).isEqualTo(true);
+}
+
+/*
+warning: [unchecked] unchecked call to add(E) as a member of the raw type Set
+        words.add("1");
+                 ^
+  where E is a type-variable:
+    E extends Object declared in interface Set
+*/
+```
 - 비 검사 매개변수화 가변인수 타입
+  - 가변인수를 제네릭과 함꼐 사용하는 경우 발생한다(Item 32)
+``` java
+@Test
+void uncheckedCall() {
+    Set words = new HashSet();
+    words.add("hello");
+    words.add(1);
+
+    assertThat(words.contains("hello")).isEqualTo(true);
+    assertThat(words.contains(1)).isEqualTo(true);
+}
+
+/*
+warning: [unchecked] Possible heap pollution from parameterized vararg type List<T>
+    private <T> List<List<T>> toList(List<T>... elements) {
+                                                ^
+  where T is a type-variable:
+    T extends Object declared in method <T>toList(List<T>...)
+*/
+```
 - 비 검사 변환
+``` java
+@Test
+void uncheckedCast() {
+    Map<String, String> map = getMap();
+}
+
+private Map getMap() {
+    return new HashMap<String, String>();
+}
+
+/*
+warning: [unchecked] unchecked conversion
+        Map<String, String> map = getMap();
+                                        ^
+  required: Map<String,String>
+  found:    Map
+*/
+```
+
 ``` java
 // Wrong, Compiler Error
 Set<Lark> exaltation = new HashSet();
