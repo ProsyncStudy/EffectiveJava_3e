@@ -251,8 +251,7 @@ found: Object[]
 */
 ```
 
-위 코드는 비 검사 형 변환의 한 예시이며, return은 선언이 아니여서 바로 위에 @SuppressWarnings 어노테이션을 붙일 수 없으므로(JLS, Java Language Specification) 메서드에 붙여야 한다 생각할 수 있지만
-다음처럼 변경하면 그럴 필요가 없다.
+- 위 코드는 비 검사 형 변환의 한 예시이며, return은 선언이 아니여서 바로 위에 @SuppressWarnings 어노테이션을 붙일 수 없으므로(JLS, Java Language Specification) 메서드에 붙여야 한다 생각할 수 있지만 다음처럼 변경하면 그럴 필요가 없다.
 
 ``` java
 // Adding local variable to reduce scope of @SuppressWarnings
@@ -262,8 +261,8 @@ if (a.length < size) {
   // This cast is correct because the array we're creating
   // is of the same type as the one passed in, which is T[].
   
-  @SuppressWarnings("unchecked") T[] result =
-  (T[]) Arrays.copyOf(elements, size, a.getClass());
+  @SuppressWarnings("unchecked")
+  T[] result = (T[]) Arrays.copyOf(elements, size, a.getClass());
   
   return result;
 }
@@ -472,11 +471,15 @@ elements = new E[DEFAULT_INITIAL_CAPACITY];
 // type of the array won't be E[]; it will always be Object[]!
 @SuppressWarnings("unckecked")
 public Stack() {
-  elements = new E[DEFAULT_INITIAL_CAPACITY];
+  elements = (E[]) new Object[DEFAULT_INITIAL_CAPACITY];
 }
 ```
   2.  E는 non-reifiable type이므로 컴파일러가 런타임에서 일어나는 형변환이 안전한지 알 수 없으니, 배열의 타입 E[] 를 Object[]로 변경하고 안전함을 증명한다
 ``` java
+public Stack() {
+  elements = new Object[DEFAULT_INITIAL_CAPACITY];
+}
+
 // Appropriate suppression of unchecked warning
 public E pop() {
   if (size == 0)
@@ -493,27 +496,12 @@ public E pop() {
 ```
   - 첫 번째 방식이 읽기 쉽고, 간결하고, 배열 선언에만 캐스팅하면 되어서 주로 사용하지만, heap pollution(런타임과 컴파일때의 타입이 달라 매개변수화 타입의 변수가 타입이 다른 객체를 참조) 문제가 발생 가능하다.
 
-> 배열 말고 리스트 쓰라매\
-  - 제네릭 타입 안에서 무조건 사용수 있는게 아니다.
+> 배열 말고 리스트 쓰라매
+  - 제네릭 타입 안에서 무조건 사용할 수 있는게 아니다.
     - 자바 기본 타입이 아니라 그렇다, ArrayList도 구현 보면 배열로 쓴다.
     - HashMap같은 경우는 성능 향상 떄문에 사용하기도 한다.
 
-``` java
-// Little program to exercise our generic Stack
-public static void main(String[] args) {
-  Stack<String> stack = new Stack<>();
-  
-  for (String arg : args)
-    stack.push(arg);
-  
-  while (!stack.isEmpty())
-    System.out.println(stack.pop().toUpperCase());
-}
-```
-### 위 코드는 Stack 클래스 사용을 보여준다.
-  - 이처럼, 형 변환 없이 toUpperCase 사용하는 등, 자동으로 캐스팅 되는걸 보여준다.
-
-### 또한, 제네릭은 매개변수의 제한이 없다.
+### 제네릭은 매개변수의 제한이 없다.
   - `Stack<Object>`, `Stack<int[]>`, `Stack<List<String>>`나 다른 reference type의 객체도 가능하다
   - 참조타입만 가능하므로, primitive type은 안되긴 한데, 박싱하면 된다.
   - DelayQueue처럼 타입 매개변수를 제한하는 제네릭 타입도 있다.
