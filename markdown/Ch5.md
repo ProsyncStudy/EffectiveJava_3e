@@ -670,8 +670,8 @@ numberstack.pushAll(integers);
 ``` java
 // Wildcard type for a parameter that serves as an E producer
 public void pushAll(Iterable<? extends E> src) {
-for (E e : src)
-push(e);
+  for (E e : src)
+   push(e);
 }
 ```
 
@@ -680,8 +680,8 @@ push(e);
 ``` java
 // popAll method without wildcard type - deficient!
 public void popAll(Collection<E> dst) {
-while (!isEmpty())
-dst.add(pop());
+  while (!isEmpty())
+    dst.add(pop());
 }
 /*
 Stack<Number> numberstack = new Stack<>();
@@ -692,8 +692,8 @@ numberstack.popAll(objects);
 
 // Wildcard type for parameter that serves as an E consumer
 public void popAll(Collection<? super E> dst) {
-while (!isEmpty())
-dst.add(pop());
+  while (!isEmpty())
+    dst.add(pop());
 }
 ```
 
@@ -818,10 +818,9 @@ static void dangerous(List<String>... stringLists) {
 
   - 위 코드는 가시적인 형변환은 없지만, 컴파일러가 자동으로 형변환 하기 때문에, 마지막줄에서 ClassCastException 오류가 발생하게 된다.
     - 즉, 타입 안정성이 보장되지 않으므로, 제네릭 가변인수 배열 매개변수에 값을 저장하는건 위험하다.
-> 왜 이걸 문법적으로 허용하는거임? 제네릭 배열을 직접 작성하는 건 안되는데/
-> -> 실무에서 매우 유용하기 떄문에 안고 가는걸로 함/
-> Arrays.asList(T... a), Collections.addAll(Collection<? super T> c, T... elements), EnumSet.of(E first, E... rest) 같은 것들이/
-> 자바에서 제공하는 메서드이며 type safe하다
+> 왜 이걸 문법적으로 허용하는거임? 제네릭 배열을 직접 작성하는 건 안되는데
+  - 실무에서 매우 유용하기 떄문에 안고 가는걸로 함
+  - Arrays.asList(T... a), Collections.addAll(Collection<? super T> c, T... elements), EnumSet.of(E first, E... rest) 같은 것들이 자바에서 제공하는 메서드이며 type safe하다.
 
 ### Java7 이전에는 제네릭 가변인수 메서드가 호출자 쪽에서 발생하는 warning을 제거하려면 매번 `@SuppressWarnings("unchecked")` 를 넣어야 했는데, 이제는 `@SafeVarargs`으로 작성자가 메서드의 타입 안전함을 보장할 수 있다.
   - 메서드를 호출 시, 가변인수 매개변수를 담는 제네릭 배열이 만들어질 때 메서드가 이 배열에 아무것도 저장하지 않고 그 배열의 참조가 밖으로 노출되지 않는다면, 타입 안전함을 보장해도 된다.
@@ -886,7 +885,7 @@ static <T> List<T> flatten(List<? extends T>... lists) {
 
 ### 제네릭이나 매개변수화 타입의 가변인수 매개변수를 받는 모든 메서드에 @SafeVarargs 를 사용할 수 있으므로, 주의해서 사용해야 한다.
   - 가변인수 매개변수 배열에(위 경우에는 list) 아무것도 저장하지 않고 그 배열(또는 clone)을 신뢰할 수 없는 코드에 노출하지 않아야 한다.
-  - > 물론, 재정의할 수 없는 메서드에만 달아야 한다\
+  - > 물론, 재정의할 수 없는 메서드에만 달아야 한다
   - > 그래서, Java 8에서 @SafeVarargs는 오직 정적 메서드와 final 인스턴스 메서드에만 붙일 수 있고 Java 9는 private 인스턴스 메서드에도 허용
 
 ### 다른 방식으로도 안전하게 만들 수 있다(Item 28 참고)
@@ -995,6 +994,7 @@ public static void main(String[] args) {
 > cast는 어떻게 동작하는거지?
 
 ``` java
+// 주어진 인수가 Class 객체가 알려주는 타입의 인스턴스인지 검사한 다음, 맞다면 그대로 반환하고 아니면 ClassCastException
 public class Class<T> {
   T cast(Object obj);
 }
@@ -1005,7 +1005,7 @@ public class Class<T> {
     - 굳이 메서드로 사용하는 이유는 cast 메서드의 시그니처가 Class 클래스가제네릭이라는 걸 최대한 이용하기 떄문
       - cast의 반환 타입은 Class 객체의 타입 매개변수와 같아 Favorites 를 T로 비검사 형변환하지 않고도 타입 안전하게 만들 수 있다.
   - 2가지 문제가 있다
-    1. client가 Class 객체를 로 타입으로 전달하면 안전성이 깨진다.
+  1. client가 Class 객체를 로 타입으로 전달하면 안전성이 깨진다.
 ``` java
 favorites.put((Class) Integer.class, "Invalid Type");
 int value = favorites.getFavorite(Integer.class); //ClassCastException
