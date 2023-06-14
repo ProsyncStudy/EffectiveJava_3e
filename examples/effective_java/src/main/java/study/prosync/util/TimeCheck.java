@@ -19,5 +19,4 @@ public class TimeCheck {
     endT = System.currentTimeMillis();
     log.info("Time Costs: " + (endT - startT) + "(ms)");
   }
-
 }
