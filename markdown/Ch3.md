@@ -74,6 +74,31 @@ Object 명세에서 발췌한 equals 관련 일반규약
   ```
 
   - string은 CaseInsensitiveString를 모르므로 CaseInsensitiveString의 equals를 string과 연동은 불가능
+
+  ``` java
+  public class CaseInsensitiveString대칭성준수 {
+
+      // ...
+
+      // 대칭성 준수
+      @Override
+      public boolean equals(Object o) {
+          return o instanceof CaseInsensitiveString대칭성준수 && ((CaseInsensitiveString대칭성준수) o).s.equalsIgnoreCase(s);
+      }
+  }
+
+  @Test
+  public void 대칭성준수() throws Exception {
+      // given
+      CaseInsensitiveString대칭성준수 cis = new CaseInsensitiveString대칭성준수("Test");
+      String s = "test";
+
+      // then
+      assertNotEquals(s, cis);
+      assertNotEquals(cis, s);
+  }
+  ```
+
 - 추이성
   - null이 아닌 x,y,z에 대해 x.equals(y)가 true고, y.equals(z)도 true면, x.equals(z)도 true다
   - 구체적 클래스에 확장은 추이성을 만족할 수 없다
@@ -100,8 +125,8 @@ Object 명세에서 발췌한 equals 관련 일반규약
   public void 추이성위배() throws Exception {
       // given
       Point p = new Point(1, 2);
-      ColorPoint추이성위배 cp = new ColorPoint추이성위배(1, 2, Color.RED.name());
-      ColorPoint추이성위배 cp2 = new ColorPoint추이성위배(1, 2, Color.BLACK.name());
+      ColorPoint추이성위배 cp = new ColorPoint추이성위배(1, 2, Color.RED);
+      ColorPoint추이성위배 cp2 = new ColorPoint추이성위배(1, 2, Color.BLACK);
 
       // then
       assertEquals(cp, p);
@@ -250,10 +275,11 @@ public boolean equals(Object o) {
   - null은 Objects.equals
   - 복잡한 필드를 가진 클래스(ex. CaseInsensitiveString)는 필드의 표준형(canonical form)을 저장해서 비교에 사용하면 경제적
     - 불변클래스에 특히 제격이고, 가변클래스라면 값이 바뀔때마다 표준형을 최신으로 갱신
-- eqauls를 구현했다면 세가지 자문 및 테스트. AutoValue 사용했으면 할 필요 없음
+- eqauls를 구현했다면 세가지 자문 및 테스트.
   - 대칭적인가?
   - 추이성이 있는가?
   - 일관적인가?
+  - AutoValue 사용했으면 할 필요 없음
 
   ``` java
   @AutoValue // equals, hashCode, toString, builder
