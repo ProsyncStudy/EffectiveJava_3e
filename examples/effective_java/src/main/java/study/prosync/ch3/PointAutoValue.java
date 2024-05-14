@@ -5,7 +5,8 @@ import com.google.auto.value.AutoValue;
 @AutoValue
 public abstract class PointAutoValue {
     public static Builder builder() {
-        return new AutoValue_PointAutoValue.Builder();
+        //return new AutoValue_PointAutoValue.Builder();
+        return null;
     }
 
     public abstract int x();
@@ -13,7 +14,7 @@ public abstract class PointAutoValue {
     public abstract int y();
 
 
-    @AutoValue.Builder
+    //@AutoValue.Builder
     public abstract static class Builder {
 
         public abstract Builder x(int x);
