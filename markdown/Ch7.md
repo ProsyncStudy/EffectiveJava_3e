@@ -107,7 +107,6 @@ public enum OP_람다 {
     MINUS("-", (x, y) -> x - y),
     TIMES("*", (x, y) -> x * y),
     DIVIDE("/", (x, y) -> x / y);
-
     private final String symbol;
     private final DoubleBinaryOperator op;
 
@@ -421,7 +420,7 @@ private String alphabetize(String s) {
 public void 아나그램() throws Exception {
     int minGroupSize = 5;
     String pathname = null;
-    
+
     File dictionary = new File(pathname);
     Map<String, Set<String>> groups = new HashMap<>();
     try (Scanner s = new Scanner(dictionary)) {
@@ -448,7 +447,7 @@ public void 아나그램() throws Exception {
 public void 아나그램_가독성떨어짐() throws Exception {
     int minGroupSize = 5;
     String pathname = null;
-    
+
     Path dictionary = Paths.get(pathname);
     try (Stream<String> words = Files.lines(dictionary)) {
         words.collect(
@@ -471,7 +470,7 @@ public void 아나그램_가독성떨어짐() throws Exception {
 public void 아나그램_가독성굳() throws Exception {
     int minGroupSize = 5;
     String pathname = null;
-    
+
     Path dictionary = Paths.get(pathname);
     try (Stream<String> words = Files.lines(dictionary)) {
         words.collect(groupingBy(word -> alphabetize(word)))
@@ -613,4 +612,4 @@ TODO: 병렬화가 뭔지 구조(그림)부터 이해해야될듯
 >
 > 스트림에서의 동시성 프로그래밍(parallel) - spliterator 메소드 재정의
 > > 병렬화의 이점을 높이려면 spliterator를 반드시 재정의 하는게 맞다.
-> 
+>
